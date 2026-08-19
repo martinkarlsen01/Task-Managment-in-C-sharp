@@ -1,6 +1,7 @@
 using TaskFlow.Components;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
+using TaskFlow.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddDbContext<AppDBContext> (options =>
     options.UseSqlite("Data Source=tasks.db"));
+
+builder.Services.AddScoped<TaskService>();
 
 
 

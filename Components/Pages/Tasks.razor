@@ -1,0 +1,40 @@
+@page "/tasks"
+@rendermode InteractiveServer
+
+@inject TaskFlow.Services.TaskService TaskService
+@using TaskFlow.Models
+
+<h1>My Tasks</h1>
+
+<input @bind= "newTitle" placeholder="Enter task title" />
+<button @onclick="AddTask">Add Task</button>
+
+<ul>
+    @foreach (var task in tasks) {
+        <li> @task.Title - @task.DueDate.ToString("dd-MM")</li> 
+    }
+
+
+</ul>
+
+@code {
+    private List<TaskItem> tasks = [];
+    private string newTitle = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        tasks = await TaskService.GetAllTasksAsync();
+    }
+
+    private async Task AddTask() {
+
+        await TaskService.AddTaskAsync( new TaskItem
+        {
+        Title = newTitle,
+        DueDate = DateOnly.FromDateTime(DateTime.Today)
+        });
+        newTitle = "";
+        tasks = await TaskService.GetAllTasksAsync();
+    }
+
+}
