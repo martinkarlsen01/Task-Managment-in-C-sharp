@@ -1,0 +1,122 @@
+@page "/calendar"
+@rendermode InteractiveServer
+@inject TaskFlow.Services.TaskService TaskService
+@using TaskFlow.Models
+
+<h1>@CurrentMonth @year</h1>
+
+<button @onclick="PreviousMonth">Previous Month</button>
+<button @onclick="NextMonth">Next Month</button>
+
+
+<div class="calendar-header">
+    <div>Mon</div><div>Tue</div><div>Wed</div>
+    <div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+</div>
+
+<div class="calendar-grid">
+    @* Blank cells before day 1 *@
+    @for (int i = 0; i < ShowBlanks; i++)
+    {
+        <div class="calendar-cell empty"></div>
+    }
+
+    @* One cell per day *@
+    @for (int day = 1; day <= DaysInMonth; day++)
+    {
+        var date = new DateOnly(year, month, day);
+        <div class="calendar-cell">
+            <div class="day-number">@day</div>
+            @if (tasksByDate.TryGetValue(date, out var dayTasks))
+            {
+                @foreach (var task in dayTasks)
+                {
+                    <div class="task-pill">@task.Title</div>
+                }
+            }
+        </div>
+    }
+</div>
+
+
+
+
+
+@code {
+    private int month = DateTime.Today.Month;
+    private int year = DateTime.Today.Year;
+
+    private Dictionary<DateOnly, List<TaskItem>> tasksByDate = new Dictionary<DateOnly, List<TaskItem>>();
+
+    private string CurrentMonth => new DateOnly(year, month, 1).ToString("MMMM");
+    protected override async Task OnInitializedAsync() => await Load();
+
+
+
+    private async Task Load() =>
+        tasksByDate = await TaskService.GetTasksForMonthAsync(year, month);
+
+
+    private async Task PreviousMonth()
+    {
+        if (month == 1)
+        {
+            month = 12;
+            year--;
+        }
+
+        else
+        {
+            month--;
+        }
+        await Load();
+    }    
+
+    private async Task NextMonth()
+    {
+        if (month == 12)
+        {
+            month = 1;
+            year++;
+        }
+
+        else
+        {
+            month++;
+        }
+        await Load();
+    }
+
+    private int DaysInMonth => DateTime.DaysInMonth(year, month);
+
+    private int ShowBlanks {
+        get {
+            var firstDay = new DateOnly(year, month, 1).DayOfWeek;
+            return ((int) firstDay+6) % 7; // Adjusting so that Monday is the first day of the week
+        }
+    }
+}
+
+
+<style>
+    .calendar-header, .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    .calendar-cell {
+        border: 1px solid #ccc;
+        min-height: 80px;
+        padding: 4px;
+    }
+    .calendar-cell.empty {
+        border: none;
+    }
+    .task-pill {
+        background: #e0e0e0;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin-top: 2px;
+        font-size: 12px;
+    }
+</style>

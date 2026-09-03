@@ -6,20 +6,55 @@
 
 <h1>My Tasks</h1>
 
-<input @bind= "newTitle" placeholder="Enter task title" />
-<button @onclick="AddTask">Add Task</button>
+<div class="task-form">
+    <input type="text" @bind="newTitle" placeholder="New task..." />
+    <input type="date" @bind="newDueDate" min="@today" />
+    <select @bind="newPriority">
+        <option value="@Priority.Low">Low</option>
+        <option value="@Priority.Medium">Medium</option>
+        <option value="@Priority.High">High</option>
+    </select>
+    <button @onclick="AddTask">Add</button>
+</div>
 
-<ul>
-    @foreach (var task in tasks) {
-        <li> @task.Title - @task.DueDate.ToString("dd-MM")</li> 
-    }
 
 
+<div class="filters">
+    <button @onclick="() => currentFilter = Filter.All">All</button>
+    <button @onclick="() => currentFilter = Filter.Active">Active</button>
+    <button @onclick="() => currentFilter = Filter.Done">Done</button>
+</div>
+
+<ul class="task-list">
+@foreach (var task in FilterTasks())
+{
+    <li class="task-item @(task.IsCompleted ? "done" : "")">
+        <input type="checkbox" checked="@task.IsCompleted" @onchange="() => Toggle(task.Id)" />
+        <span class="task-title">@task.Title</span>
+        <span class="task-date">@task.DueDate.ToString("dd MMM")</span>
+        <span class="pill @PriorityClass(task.Priority)">@task.Priority</span>
+        <button class="delete-btn" @onclick="() => DeleteTask(task.Id)">Delete</button>
+    </li>
+}
 </ul>
 
 @code {
+
+    private DateOnly newDueDate = DateOnly.FromDateTime(DateTime.Today);
+    private string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+    private Priority newPriority = Priority.Medium;
     private List<TaskItem> tasks = [];
     private string newTitle = "";
+    
+
+    private enum Filter {
+        All,
+        Active,
+        Done
+    } 
+    private Filter currentFilter = Filter.All;
+
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,10 +66,76 @@
         await TaskService.AddTaskAsync( new TaskItem
         {
         Title = newTitle,
-        DueDate = DateOnly.FromDateTime(DateTime.Today)
+        DueDate = newDueDate,
+        Priority = newPriority
         });
         newTitle = "";
         tasks = await TaskService.GetAllTasksAsync();
     }
 
+    private async Task Toggle(int taskId)
+    {
+        await TaskService.ToggleTaskCompletionAsync(taskId);
+        tasks = await TaskService.GetAllTasksAsync();
+    }
+    private async Task DeleteTask(int taskId)
+    {
+        await TaskService.DeleteTaskAsync(taskId);
+        tasks = await TaskService.GetAllTasksAsync();
+    }
+
+    private IEnumerable<TaskItem> FilterTasks()
+    {
+        return currentFilter switch
+        {
+            Filter.Active => tasks.Where(t => !t.IsCompleted),
+            Filter.Done => tasks.Where(t => t.IsCompleted),
+            _ => tasks
+        };
+    }
+
+    private string PriorityClass(Priority p) => p switch
+    {
+    Priority.High => "pill-high",
+    Priority.Medium => "pill-med",
+    Priority.Low => "pill-low",
+    _ => ""
+    };  
+
+
 }
+
+<style>
+    .task-form { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .task-form input[type="text"] { flex: 1; min-width: 180px; }
+
+    .filters { display: flex; gap: 8px; margin-bottom: 1rem; }
+
+    .task-list { list-style: none; padding: 0; margin: 0; }
+    .task-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+    .task-item.done .task-title { text-decoration: line-through; color: var(--text-muted); }
+    .task-title { flex: 1; }
+    .task-date { color: var(--text-muted); font-size: 0.85rem; }
+
+    .pill {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-weight: 500;
+    }
+    .pill-high { background: var(--high-bg); color: var(--high-text); }
+    .pill-med  { background: var(--med-bg);  color: var(--med-text); }
+    .pill-low  { background: var(--low-bg);  color: var(--low-text); }
+
+    .delete-btn { border-color: transparent; color: var(--text-muted); padding: 4px 8px; }
+    .delete-btn:hover { background: var(--high-bg); color: var(--high-text); }
+</style>
