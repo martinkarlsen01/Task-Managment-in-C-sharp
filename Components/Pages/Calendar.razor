@@ -5,8 +5,10 @@
 
 <h1>@CurrentMonth @year</h1>
 
-<button @onclick="PreviousMonth">Previous Month</button>
-<button @onclick="NextMonth">Next Month</button>
+<div class="calendar-nav">
+    <button @onclick="PreviousMonth">← Prev</button>
+    <button @onclick="NextMonth">Next →</button>
+</div>
 
 
 <div class="calendar-header">
@@ -31,7 +33,10 @@
             {
                 @foreach (var task in dayTasks)
                 {
-                    <div class="task-pill">@task.Title</div>
+                    <div class="task-pill">
+                    <span class="dot @PriorityClass(task.Priority)"></span>
+        @task.Title
+    </div>
                 }
             }
         </div>
@@ -95,28 +100,77 @@
             return ((int) firstDay+6) % 7; // Adjusting so that Monday is the first day of the week
         }
     }
+
+    private string PriorityClass(Priority p) => p switch
+{
+    Priority.High => "pill-high",
+    Priority.Medium => "pill-med",
+    Priority.Low => "pill-low",
+    _ => "pill-low"
+};
 }
 
 
 <style>
+    .calendar-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; }
+
     .calendar-header, .calendar-grid {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .calendar-header {
+        margin-bottom: 6px;
+    }
+    .calendar-header > div {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        padding: 0 4px;
     }
     .calendar-cell {
-        border: 1px solid #ccc;
-        min-height: 80px;
-        padding: 4px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        min-height: 90px;
+        padding: 6px;
     }
     .calendar-cell.empty {
+        background: transparent;
         border: none;
     }
-    .task-pill {
-        background: #e0e0e0;
-        border-radius: 4px;
-        padding: 2px 4px;
-        margin-top: 2px;
-        font-size: 12px;
+    .day-number {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
     }
+    .task-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-top: 3px;
+    font-size: 0.72rem;
+    min-width: 0;          
+    overflow: hidden;
+}
+
+.task-pill .title-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+    .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+    .dot.pill-high { background: var(--high-text); }
+    .dot.pill-med  { background: var(--med-text); }
+    .dot.pill-low  { background: var(--low-text); }
 </style>

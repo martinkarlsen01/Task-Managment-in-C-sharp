@@ -26,15 +26,23 @@
 </div>
 
 <ul class="task-list">
-@foreach (var task in FilterTasks())
+
+
+@foreach (var group in GroupedTasks)
 {
-    <li class="task-item @(task.IsCompleted ? "done" : "")">
-        <input type="checkbox" checked="@task.IsCompleted" @onchange="() => Toggle(task.Id)" />
-        <span class="task-title">@task.Title</span>
-        <span class="task-date">@task.DueDate.ToString("dd MMM")</span>
-        <span class="pill @PriorityClass(task.Priority)">@task.Priority</span>
-        <button class="delete-btn" @onclick="() => DeleteTask(task.Id)">Delete</button>
-    </li>
+    <h2 class="group-heading @(group.Key == "Overdue" ? "overdue" : "")">@group.Key</h2>
+    <ul class="task-list">
+        @foreach (var task in group.OrderBy(t => t.DueDate))
+        {
+            <li class="task-item @(task.IsCompleted ? "done" : "")">
+                <input type="checkbox" checked="@task.IsCompleted" @onchange="() => Toggle(task.Id)" />
+                <span class="task-title">@task.Title</span>
+                <span class="task-date">@task.DueDate.ToString("dd MMM")</span>
+                <span class="pill @PriorityClass(task.Priority)">@task.Priority</span>
+                <button class="delete-btn" @onclick="() => DeleteTask(task.Id)">Delete</button>
+            </li>
+        }
+    </ul>
 }
 </ul>
 
@@ -102,12 +110,31 @@
     _ => ""
     };  
 
+    private static string GroupFor(TaskItem task)
+{
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var weekEnd = today.AddDays(7);
+
+    return task.DueDate switch
+    {
+        var d when d < today   => "Overdue",
+        var d when d <= weekEnd => "This Week",
+        _                       => "Weeks To Come"
+    };
+}
+    private static readonly string[] GroupOrder = ["Overdue", "This Week", "Weeks To Come"];
+
+private IEnumerable<IGrouping<string, TaskItem>> GroupedTasks =>
+    FilterTasks()
+        .GroupBy(GroupFor)
+        .OrderBy(g => Array.IndexOf(GroupOrder, g.Key));
+
 
 }
 
 <style>
     .task-form { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .task-form input[type="text"] { flex: 1; min-width: 180px; }
+    .task-form input[type="text"] {color: white; flex: 1; min-width: 180px; }
 
     .filters { display: flex; gap: 8px; margin-bottom: 1rem; }
 
@@ -125,6 +152,16 @@
     .task-item.done .task-title { text-decoration: line-through; color: var(--text-muted); }
     .task-title { flex: 1; }
     .task-date { color: var(--text-muted); font-size: 0.85rem; }
+
+
+    .group-heading {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.5rem 0;
+}
+    .group-heading.overdue { color: var(--high-text); }
 
     .pill {
         font-size: 0.75rem;

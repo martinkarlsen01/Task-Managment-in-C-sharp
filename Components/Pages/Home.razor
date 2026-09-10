@@ -1,7 +1,70 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>TaskFlow</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="home">
+    <h1>Welcome to a Simple Task Manager</h1>
+    <p class="intro">A simple task manager to keep track of what needs doing and when with a built in calendar.</p>
 
-Welcome to your new app.
+    <div class="cards">
+        <a class="card" href="tasks">
+            <h2>Tasks</h2>
+            <p>Add, complete, and organise your to-dos. Set a due date and priority for each one, then filter by what's still active or already done.</p>
+            <span class="card-link">Go to Tasks →</span>
+        </a>
+
+        <a class="card" href="calendar">
+            <h2>Calendar</h2>
+            <p>See your tasks laid out across the month. Each task appears on its due date, colour-coded by priority, so you can spot busy days at a glance.</p>
+            <span class="card-link">Go to Calendar →</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .home { max-width: 700px; }
+
+    .intro {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .cards {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .card {
+        flex: 1;
+        min-width: 260px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    .card h2 {
+        font-size: 1.2rem;
+        margin: 0 0 0.5rem 0;
+    }
+    .card p {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin: 0 0 1rem 0;
+    }
+    .card-link {
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+</style>
