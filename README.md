@@ -55,7 +55,7 @@ The app is organised into clear layers:
 - **`Services/`** — the `TaskService`, which holds all the logic for reading and writing tasks. The UI never touches the database directly; it goes through this service.
 - **`Components/Pages/`** — the Blazor pages (`Tasks`, `Calendar`, `Home`) that make up the interface.
 
-Because it uses **Blazor Server**, the entire app — front end and back end — is written in C#, with no separate JavaScript API layer. A button click in the UI calls a C# method on the server, which reads or writes the database and updates the page.
+Because it uses **Blazor Server**, the entire app, front end and back end is written in C#, with no separate JavaScript API layer. A button click in the UI calls a C# method on the server, which reads or writes the database and updates the page.
 
 ---
 
@@ -74,23 +74,12 @@ dotnet run
 
 Then open the URL shown in the terminal (usually `https://localhost:5001`) in your browser.
 
-The SQLite database is created automatically on first run — the app applies its migrations on startup, so there's no manual database setup.
+The SQLite database is created automatically on first run, the app applies its migrations on startup, so there's no manual database setup.
 
 ---
 
-## Design notes
-
-A few deliberate choices worth calling out:
-
-- **SQLite over a server database** (like PostgreSQL or SQL Server) — it needs zero setup and stores everything in a single file, which makes the project trivial to clone and run. The Entity Framework Core provider can be swapped in one line if a full database were needed later.
-- **A service layer** between the UI and the database, so the pages stay focused on presentation and the data logic lives in one place.
-- **Computed views over stored state** — the task grouping (Overdue / This week / Weeks to come) is calculated from each task's due date rather than stored in the database, so it's always correct without extra bookkeeping.
-
----
 
 ## Possible next steps
 
 - User accounts, so multiple people can keep separate task lists
 - Recurring tasks
-- A calendar subscription feed (`.ics`) so tasks show up in Google Calendar or Outlook
-- Deployment to a cloud host with a live demo link
